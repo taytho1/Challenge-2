@@ -1,0 +1,184 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerController : MonoBehaviour {
+
+    private Rigidbody2D rb2d;
+    private int score;
+    private int lives;
+    private Animator anim;
+    private bool facingRight = true;
+    private int level;
+
+
+    public float speed;
+    public float jumpforce;
+    public Text scoreText;
+    public Text winText;
+    public Text loseText;
+    public Text livesText;
+    public GameObject player;
+    public GameObject enemys;
+
+    public AudioClip musicClipOne;
+    public AudioClip musicClipTwo;
+    public AudioSource musicSource;
+
+
+
+    void Start () {
+        
+        anim = GetComponent<Animator> ();
+
+        rb2d = GetComponent<Rigidbody2D>();
+        score = 0;
+
+        lives = 3;
+
+        level = 1;
+        
+        loseText.text = "";
+
+        winText.text = "";
+
+        SetAllText();
+    }
+    
+
+
+    void Update()
+    {
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            anim.SetInteger("State", 1);
+        }
+
+        if (Input.GetKeyUp(KeyCode.RightArrow))
+            {
+                anim.SetInteger("State", 0);
+            }
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            anim.SetInteger("State", 1);
+        }
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            anim.SetInteger("State", 0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            anim.SetInteger("State", 3);
+        }
+
+        if (Input.GetKeyUp(KeyCode.UpArrow))
+            {
+                anim.SetInteger("State", 4);    
+            }
+       
+    }
+    void FixedUpdate()
+    {
+      
+        float moveHorizontal = Input.GetAxis("Horizontal");
+
+        Vector2 movement = new Vector2(moveHorizontal, 0);
+
+        rb2d.AddForce(movement * speed);
+
+        if (facingRight == false && moveHorizontal > 0)
+        {
+            Flip();
+        }
+        else if (facingRight == true && moveHorizontal < 0)
+        {
+            Flip();
+        }
+
+    }
+
+    void Flip()
+    {
+        facingRight = !facingRight;
+        transform.Rotate(Vector3.up * 180);
+        //Vector2 Scaler = transform.localScale;
+        //Scaler.x = Scaler.x * -1;
+        //transform.localScale = Scaler;
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.collider.tag == "Ground")
+        {
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                rb2d.AddForce(new Vector2(0, jumpforce), ForceMode2D.Impulse);
+            }
+        }
+
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.gameObject.CompareTag("Pickup"))
+        {
+            other.gameObject.SetActive(false);
+
+            score = score + 1;
+
+            SetAllText();
+        }
+        else if (other.gameObject.CompareTag("Enemy"))
+        {
+            other.gameObject.SetActive(false); 
+
+            lives = lives - 1;
+
+            SetAllText();
+        }
+        if (score == 4 && level == 1)
+        {
+            lives = 3;
+
+            level = 2;
+
+            transform.position = new Vector2(50.0f, 0.0f);
+
+            SetAllText();
+        }
+        if (score == 8)
+        {
+            Destroy(enemys);
+
+            musicSource.Stop();
+
+        }
+        if (lives == 0)
+        {
+            Destroy(player);
+        }
+        
+    }
+    
+void SetAllText()
+{
+    scoreText.text = "Score: " + score.ToString();
+
+    if (score == 8)
+    {
+        winText.text = "You win!";
+            
+        }
+
+        livesText.text = "Lives: " + lives.ToString();
+    if (lives == 0)
+    {
+        loseText.text = "You Lose!";
+    }
+    }
+}
